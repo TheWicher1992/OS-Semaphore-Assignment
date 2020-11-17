@@ -27,7 +27,7 @@ void restore_output(int pipefd[2], int stdout_bk)
     dup2(stdout_bk, fileno(stdout));
 }
 
-void test(char *path)
+void test(char *path, int numberT)
 {
     FILE *test;
     int NUM_PESSENGERS;
@@ -37,7 +37,7 @@ void test(char *path)
     int pipefd[2];
     int stdout_bk;
 
-    //catch_stdout(pipefd, &stdout_bk);
+    catch_stdout(pipefd, &stdout_bk);
     test = fopen(path, "r");
 
     fscanf(test, "%d %d %d", &NUM_PESSENGERS, &NUM_FLOORS, &MAX_NUM_PEOPLE);
@@ -71,21 +71,21 @@ void test(char *path)
         pthread_join(threads[i], NULL);
     }
 
-    // restore_output(pipefd, stdout_bk);
-    // FILE *temp = fdopen(pipefd[0], "r");
-    // for (i = 0; i < NUM_PESSENGERS; i++)
-    // {
-    //     int id, from, to, test_id, test_from, test_to;
-    //     fscanf(temp, "%d %d %d", &id, &from, &to);
-    //     fscanf(test, "%d %d %d", &test_id, &test_from, &test_to);
-    //     if (from != test_from || to != test_to)
-    //     {
-    //         printf("'%s' FAILED\n", path);
-    //         return;
-    //     }
-    // }
+    restore_output(pipefd, stdout_bk);
+    FILE *temp = fdopen(pipefd[0], "r");
+    for (i = 0; i < NUM_PESSENGERS; i++)
+    {
+        int id, from, to, test_id, test_from, test_to;
+        fscanf(temp, "%d %d %d", &id, &from, &to);
+        fscanf(test, "%d %d %d", &test_id, &test_from, &test_to);
+        if (from != test_from || to != test_to)
+        {
+            printf("'%s' FAILED-********************************************************\n", path);
+            return;
+        }
+    }
 
-    printf("'%s' PASSED\n", path);
+    printf("'T: %d' PASSED\n", numberT);
 }
 
 void test2(char *path)
@@ -246,8 +246,13 @@ void test3(char *path)
 int main()
 {
 
-    test("test_1_2");
-    fflush(stdout);
+    for (int i = 0; i < 100; i++)
+    {
+
+        test("test_1_2", i);
+        fflush(stdout);
+    }
+
     // test2("test2");
     // fflush(stdout);
     // test3("test3");

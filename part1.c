@@ -17,7 +17,7 @@
 sem_t *user_inLift;
 sem_t *user_outLift;
 sem_t *mutex;
-sem_t *rw_mutex;
+sem_t *wait_lift;
 sem_t *printer;
 
 struct lift *l1;
@@ -38,7 +38,7 @@ void initializeP1(int numFloors, int maxNumPeople)
 	user_inLift = malloc(sizeof(sem_t) * numFloors);
 	user_outLift = malloc(sizeof(sem_t) * numFloors);
 	mutex = (sem_t *)malloc(sizeof(sem_t));
-	rw_mutex = malloc(sizeof(sem_t));
+	wait_lift = malloc(sizeof(sem_t));
 
 	printer = malloc(sizeof(sem_t));
 	//INIT LIFT
@@ -53,7 +53,7 @@ void initializeP1(int numFloors, int maxNumPeople)
 	l1->waiting_out_currentfloor = malloc(sizeof(int) * numFloors);
 	l1->waiting_in_currentfloor = malloc(sizeof(int) * numFloors);
 	sem_init(mutex, 0, 1);
-	sem_init(rw_mutex, 0, 1);
+	sem_init(wait_lift, 0, 0);
 	sem_init(printer, 0, 1);
 
 	for (int i = 0; i < numFloors; i++)
@@ -119,11 +119,11 @@ void *goingFromToP1(void *arg)
 	l1->total_waiting++;
 	sem_post(mutex);
 
-	print("Entered %d\n", id);
+	//print("Entered %d\n", id);
 
 	sem_wait(&user_outLift[from]);
 
-	print("Got in %d\n", from);
+	//print("Got in %d\n", from);
 
 	sem_wait(mutex);
 	l1->waiting_out_currentfloor[from]--;
@@ -132,15 +132,19 @@ void *goingFromToP1(void *arg)
 	l1->people_inside++;
 	sem_post(mutex);
 
+	sem_post(wait_lift);
+
 	sem_wait(&user_inLift[to]);
 
 	sem_wait(mutex);
 	l1->waiting_in_currentfloor[to]--;
 	l1->people_inside--;
 	sem_post(mutex);
-
+	sem_wait(printer);
 	printf("%d %d %d\n", id, from, to);
 	fflush(stdout);
+	sem_post(printer);
+	sem_post(wait_lift);
 }
 
 void *liftf()
@@ -152,22 +156,30 @@ void *liftf()
 
 	while (1)
 	{
-		print("Curr Floor %d\n", floor);
+		//print("Curr Floor %d\n", floor);
 		sem_wait(mutex);
-		if (ppl < max && l1->waiting_out_currentfloor[floor] > 0)
+		int waiting = l1->waiting_out_currentfloor[floor];
+		sem_post(mutex);
+		if (ppl < max && waiting > 0)
 		{
-			print("Signalled %d\n", floor);
+			//print("Signalled %d\n", floor);
 			sem_post(&user_outLift[floor]);
+			sem_wait(wait_lift);
 			ppl++;
 		}
 
-		if (l1->waiting_in_currentfloor[floor] > 0)
+		sem_wait(mutex);
+		waiting = l1->waiting_in_currentfloor[floor];
+		sem_post(mutex);
+
+		if (waiting > 0)
 		{
+			//print("Signalled out %d\n", floor);
+
 			sem_post(&user_inLift[floor]);
+			sem_wait(wait_lift);
 			ppl--;
 		}
-
-		sem_post(mutex);
 
 		if (ppl < 1 && l1->total_waiting < 1)
 		{
@@ -184,8 +196,6 @@ void *liftf()
 		if (floor == l1->total_floors - 1)
 			up = 0;
 	}
-
-	exit(0);
 }
 
 /*If you see the main file, you will get to 
@@ -198,10 +208,9 @@ waiting for the elevator.
 */
 void startP1()
 {
-	sleep(2); // This is the only place where you are allowed to use sleep
+	sleep(1); // This is the only place where you are allowed to use sleep
 	pthread_t l1_t1;
 
 	pthread_create(&l1_t1, NULL, liftf, NULL);
-	pthread_join(l1_t1, NULL);
 	return;
 }
