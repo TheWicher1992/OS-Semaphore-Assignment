@@ -27,7 +27,7 @@ void restore_output(int pipefd[2], int stdout_bk)
     dup2(stdout_bk, fileno(stdout));
 }
 
-void test(char *path, int numberT)
+void test(char *path)
 {
     FILE *test;
     int NUM_PESSENGERS;
@@ -85,7 +85,7 @@ void test(char *path, int numberT)
         }
     }
 
-    printf("'T: %d' PASSED\n", numberT);
+    printf("'%s' PASSED\n", path);
 }
 
 void test2(char *path)
@@ -246,12 +246,8 @@ void test3(char *path)
 int main()
 {
 
-    for (int i = 0; i < 100; i++)
-    {
-
-        test("test_1_2", i);
-        fflush(stdout);
-    }
+    test("test_1_2");
+    fflush(stdout);
 
     // test2("test2");
     // fflush(stdout);
