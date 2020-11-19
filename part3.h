@@ -1,14 +1,16 @@
 #ifndef PART_3
 #define PART_3
 
-enum DIRECTION {
+enum DIRECTION
+{
     NORTH,
     SOUTH,
     EAST,
     WEST
 };
 
-enum LANE {
+enum LANE
+{
     LEFT,
     RIGHT
 };
@@ -22,6 +24,6 @@ void initializeP3();
  * first print all the cars in the LEFT lane, followed by all the
  * cars in the right lane
  */
-void *goingFromToP3(void * argument);
+void *goingFromToP3(void *argument);
 void startP3();
 #endif

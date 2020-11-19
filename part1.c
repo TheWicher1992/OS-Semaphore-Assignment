@@ -102,14 +102,6 @@ void *goingFromToP1(void *arg)
 {
 	struct argument *user = (struct argument *)arg;
 
-	// int max_capacity;
-	// int people_inside;
-	// int total_floors;
-	// int current_floor;
-	// int *waiting_out_currentfloor;
-	// int *waiting_in_currentfloor;
-	// int total_waiting;
-
 	int id = user->id;
 	int from = user->from;
 	int to = user->to;
@@ -119,11 +111,7 @@ void *goingFromToP1(void *arg)
 	l1->total_waiting++;
 	sem_post(mutex);
 
-	//print("Entered %d\n", id);
-
 	sem_wait(&user_outLift[from]);
-
-	//print("Got in %d\n", from);
 
 	sem_wait(mutex);
 	l1->waiting_out_currentfloor[from]--;
@@ -140,10 +128,12 @@ void *goingFromToP1(void *arg)
 	l1->waiting_in_currentfloor[to]--;
 	l1->people_inside--;
 	sem_post(mutex);
+
 	sem_wait(printer);
 	printf("%d %d %d\n", id, from, to);
 	fflush(stdout);
 	sem_post(printer);
+
 	sem_post(wait_lift);
 }
 

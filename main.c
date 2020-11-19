@@ -206,9 +206,11 @@ void test3(char *path)
         arg->from = getEnum(cars[i][0]);
         arg->to = getEnum(cars[i][1]);
         arg->lane = getEnum(cars[i][2]);
+        // printf("%d %d %d\n", arg->from, arg->to, arg->lane);
         arg->user_id = i;
         pthread_create(&tid, NULL, goingFromToP3, (void *)arg);
         threads[i] = tid;
+        sleep(1);
     }
 
     startP3();
@@ -246,10 +248,22 @@ void test3(char *path)
 int main()
 {
 
-    test("test_1_2");
-    fflush(stdout);
+    // for (int i = 0; i < 10; i++)
+    // {
+
+    //     test("test_1_2");
+    //     fflush(stdout);
+    //     /* code */
+    // }
 
     // test2("test2");
     // fflush(stdout);
-    // test3("test3");
+
+    for (int i = 0; i < 50; i++)
+    {
+
+        test3("test3");
+        // printf("-------------------------\n");
+        fflush(stdout);
+    }
 }
